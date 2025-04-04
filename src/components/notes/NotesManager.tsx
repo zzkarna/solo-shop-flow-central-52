@@ -6,81 +6,15 @@ import { Input } from '@/components/ui/input';
 import { NotePreview } from '@/components/notes/NotePreview';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-interface Note {
-  id: string;
-  title: string;
-  excerpt: string;
-  date: string;
-  category: string;
-  content?: string;
-}
-
-interface NotebookType {
-  id: string;
-  name: string;
-  notes: Note[];
-}
+import { NewNoteDialog } from '@/components/notes/NewNoteDialog';
+import { NewNotebookDialog } from '@/components/notes/NewNotebookDialog';
+import { useAppContext } from '@/context/AppContext';
 
 export function NotesManager() {
+  const { notebooks } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Sample notebooks and notes for demo
-  const notebooks: NotebookType[] = [
-    {
-      id: 'marketing',
-      name: 'Marketing',
-      notes: [
-        {
-          id: '1',
-          title: 'Product Launch Ideas',
-          excerpt: 'For the summer collection, we should focus on lightweight fabrics and bright colors. Key items to include:',
-          date: '2 days ago',
-          category: 'Marketing'
-        },
-        {
-          id: '2',
-          title: 'Social Media Schedule',
-          excerpt: 'Monday: Product spotlight\nWednesday: Customer testimonial\nFriday: Behind the scenes\nSunday: Weekend special',
-          date: '1 week ago',
-          category: 'Marketing'
-        }
-      ]
-    },
-    {
-      id: 'operations',
-      name: 'Operations',
-      notes: [
-        {
-          id: '3',
-          title: 'Shipping Workflow',
-          excerpt: 'Updated process for shipping orders: 1. Verify order details 2. Print shipping label 3. Package items 4. Prepare for pickup',
-          date: '3 days ago',
-          category: 'Operations'
-        },
-        {
-          id: '4',
-          title: 'Inventory Management',
-          excerpt: 'New count procedure: 1. Count all items at the beginning of month 2. Update spreadsheet 3. Compare with system numbers',
-          date: '2 weeks ago',
-          category: 'Operations'
-        }
-      ]
-    },
-    {
-      id: 'suppliers',
-      name: 'Suppliers',
-      notes: [
-        {
-          id: '5',
-          title: 'Fabric Vendor Contact Info',
-          excerpt: 'Primary: John Smith (555-123-4567)\nBackup: Sarah Jones (555-987-6543)\nEmail: orders@fabricsupplier.com',
-          date: '1 month ago',
-          category: 'Suppliers'
-        }
-      ]
-    }
-  ];
+  const [newNoteDialogOpen, setNewNoteDialogOpen] = useState(false);
+  const [newNotebookDialogOpen, setNewNotebookDialogOpen] = useState(false);
   
   // Flatten all notes for search
   const allNotes = notebooks.flatMap(notebook => notebook.notes);
@@ -109,11 +43,11 @@ export function NotesManager() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button>
+          <Button onClick={() => setNewNoteDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             New Note
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setNewNotebookDialogOpen(true)}>
             <FolderOpen className="mr-2 h-4 w-4" />
             New Notebook
           </Button>
@@ -228,6 +162,16 @@ export function NotesManager() {
           </div>
         </TabsContent>
       </Tabs>
+      
+      <NewNoteDialog 
+        open={newNoteDialogOpen} 
+        onOpenChange={setNewNoteDialogOpen} 
+      />
+      
+      <NewNotebookDialog 
+        open={newNotebookDialogOpen} 
+        onOpenChange={setNewNotebookDialogOpen} 
+      />
     </div>
   );
 }

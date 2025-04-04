@@ -1,13 +1,8 @@
 
-// This is a read-only file, but we need to ensure it works with our updated context
-// We'll create a new enhanced version of TaskItem that connects to our context
-
 import React from 'react';
 import { format } from 'date-fns';
 import { CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { useAppContext } from '@/context/AppContext';
 
 interface TaskProps {
   task: {
@@ -20,13 +15,11 @@ interface TaskProps {
   };
 }
 
-export function EnhancedTaskItem({ task }: TaskProps) {
-  const { updateTaskStatus } = useAppContext();
-  
+export function TaskItem({ task }: TaskProps) {
   const priorityStyles = {
-    high: "border-red-200 bg-red-50 hover:bg-red-100",
-    medium: "border-amber-200 bg-amber-50 hover:bg-amber-100",
-    low: "border-green-200 bg-green-50 hover:bg-green-100"
+    high: "border-red-200 bg-red-50",
+    medium: "border-amber-200 bg-amber-50",
+    low: "border-green-200 bg-green-50"
   };
   
   const statusIcons = {
@@ -41,20 +34,6 @@ export function EnhancedTaskItem({ task }: TaskProps) {
   const taskDate = new Date(task.dueDate);
   taskDate.setHours(0, 0, 0, 0);
   const isOverdue = taskDate < today && task.status !== 'completed';
-  
-  const getNextStatus = () => {
-    switch (task.status) {
-      case 'not-started': return 'in-progress';
-      case 'in-progress': return 'completed';
-      case 'completed': return 'not-started';
-      default: return 'not-started';
-    }
-  };
-  
-  const handleStatusUpdate = () => {
-    const nextStatus = getNextStatus();
-    updateTaskStatus(task.id, nextStatus);
-  };
 
   return (
     <div className={cn(
@@ -62,14 +41,9 @@ export function EnhancedTaskItem({ task }: TaskProps) {
       priorityStyles[task.priority],
       task.status === 'completed' && "opacity-70"
     )}>
-      <Button 
-        variant="ghost" 
-        size="icon"
-        className="rounded-full p-0"
-        onClick={handleStatusUpdate}
-      >
+      <div>
         {statusIcons[task.status]}
-      </Button>
+      </div>
       
       <div className="flex-1 min-w-0">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
@@ -112,3 +86,6 @@ export function EnhancedTaskItem({ task }: TaskProps) {
     </div>
   );
 }
+
+// Export the EnhancedTaskItem as TaskItem for new components
+export { EnhancedTaskItem as TaskItem } from './TaskItem';

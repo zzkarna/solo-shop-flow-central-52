@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { format, addMonths } from 'date-fns';
+import { format } from 'date-fns';
 import { Plus, Search, Shield, Calendar, AlertTriangle, Check, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,87 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-
-interface ComplianceItem {
-  id: string;
-  title: string;
-  dueDate: Date;
-  description?: string;
-  status: 'completed' | 'upcoming' | 'urgent' | 'overdue';
-  category: 'tax' | 'license' | 'legal' | 'insurance';
-  documents?: string[];
-}
+import { NewComplianceItemDialog } from '@/components/compliance/NewComplianceItemDialog';
+import { useAppContext } from '@/context/AppContext';
 
 export function ComplianceManager() {
+  const { complianceItems, updateComplianceStatus } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Sample compliance items for demo
-  const complianceItems: ComplianceItem[] = [
-    { 
-      id: '1', 
-      title: 'Quarterly Sales Tax Filing', 
-      dueDate: new Date(2025, 3, 30), // April 30, 2025
-      description: 'File Q1 sales tax report with state department of revenue',
-      status: 'upcoming',
-      category: 'tax'
-    },
-    { 
-      id: '2', 
-      title: 'Business License Renewal', 
-      dueDate: new Date(2025, 5, 15), // June 15, 2025
-      description: 'Annual business license renewal with city office',
-      status: 'upcoming',
-      category: 'license'
-    },
-    { 
-      id: '3', 
-      title: 'Annual Tax Return', 
-      dueDate: new Date(2025, 3, 15), // April 15, 2025
-      description: 'Federal income tax return for the business',
-      status: 'urgent',
-      category: 'tax'
-    },
-    { 
-      id: '4', 
-      title: 'Insurance Policy Renewal', 
-      dueDate: new Date(2025, 2, 10), // March 10, 2025
-      description: 'Renew business liability insurance policy',
-      status: 'completed',
-      category: 'insurance'
-    },
-    { 
-      id: '5', 
-      title: 'LLC Annual Report', 
-      dueDate: new Date(2025, 0, 15), // January 15, 2025
-      description: 'Submit annual LLC report to state',
-      status: 'overdue',
-      category: 'legal'
-    },
-    { 
-      id: '6', 
-      title: 'Sales Tax Permit Renewal', 
-      dueDate: new Date(2025, 7, 31), // August 31, 2025
-      description: 'Renew sales tax collection permit',
-      status: 'upcoming',
-      category: 'license'
-    },
-    { 
-      id: '7', 
-      title: 'Quarterly Estimated Tax Payment', 
-      dueDate: new Date(2025, 6, 15), // July 15, 2025
-      description: 'Q2 estimated tax payment',
-      status: 'upcoming',
-      category: 'tax'
-    },
-    { 
-      id: '8', 
-      title: 'Workers Comp Insurance Audit', 
-      dueDate: new Date(2025, 1, 28), // February 28, 2025
-      description: 'Annual workers compensation insurance audit',
-      status: 'overdue',
-      category: 'insurance'
-    }
-  ];
+  const [newComplianceItemDialogOpen, setNewComplianceItemDialogOpen] = useState(false);
   
   // Filter items based on search term
   const filteredItems = complianceItems.filter(item => 
@@ -128,6 +54,10 @@ export function ComplianceManager() {
     legal: <span className="text-purple-600">⚖️</span>,
     insurance: <span className="text-amber-600">🔒</span>
   };
+  
+  const handleMarkCompleted = (id: string) => {
+    updateComplianceStatus(id, 'completed');
+  };
 
   return (
     <div className="space-y-6">
@@ -138,7 +68,7 @@ export function ComplianceManager() {
             Track and manage your business compliance requirements.
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setNewComplianceItemDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Add Compliance Item
         </Button>
@@ -215,6 +145,17 @@ export function ComplianceManager() {
                           Due: {format(item.dueDate, 'MMM d, yyyy')}
                         </p>
                       </div>
+                      
+                      {item.status !== 'completed' && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="whitespace-nowrap"
+                          onClick={() => handleMarkCompleted(item.id)}
+                        >
+                          Mark Complete
+                        </Button>
+                      )}
                     </div>
                   )) : (
                     <div className="text-center py-8">
@@ -262,6 +203,15 @@ export function ComplianceManager() {
                               </p>
                             )}
                           </div>
+                          
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="whitespace-nowrap"
+                            onClick={() => handleMarkCompleted(item.id)}
+                          >
+                            Mark Complete
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -301,6 +251,15 @@ export function ComplianceManager() {
                               </p>
                             )}
                           </div>
+                          
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="whitespace-nowrap"
+                            onClick={() => handleMarkCompleted(item.id)}
+                          >
+                            Mark Complete
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -361,6 +320,11 @@ export function ComplianceManager() {
           </CardFooter>
         </Card>
       </div>
+      
+      <NewComplianceItemDialog 
+        open={newComplianceItemDialogOpen} 
+        onOpenChange={setNewComplianceItemDialogOpen} 
+      />
     </div>
   );
 }

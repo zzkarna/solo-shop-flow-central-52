@@ -7,23 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TaskItem } from '@/components/tasks/TaskItem';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NewTaskDialog } from '@/components/tasks/NewTaskDialog';
+import { useAppContext } from '@/context/AppContext';
 
 export function TaskManager() {
+  const { tasks } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPriority, setFilterPriority] = useState<string>('all');
+  const [newTaskDialogOpen, setNewTaskDialogOpen] = useState(false);
   
-  // Sample tasks for demo
-  const tasks = [
-    { id: '1', title: 'Order new shipping supplies', priority: 'medium' as const, dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), status: 'not-started' as const },
-    { id: '2', title: 'Update product descriptions', priority: 'high' as const, dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), status: 'in-progress' as const },
-    { id: '3', title: 'Schedule social media posts', priority: 'low' as const, dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), status: 'not-started' as const },
-    { id: '4', title: 'Contact supplier about late delivery', priority: 'high' as const, dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), status: 'not-started' as const },
-    { id: '5', title: 'Renew domain name', priority: 'medium' as const, dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), status: 'not-started' as const },
-    { id: '6', title: 'Review customer feedback', priority: 'medium' as const, dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), status: 'in-progress' as const },
-    { id: '7', title: 'Update inventory count', priority: 'high' as const, dueDate: new Date(Date.now()), status: 'completed' as const },
-    { id: '8', title: 'Send thank you emails to recent customers', priority: 'low' as const, dueDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000), status: 'not-started' as const },
-  ];
-
   // Apply filters
   const filteredTasks = tasks
     .filter(task => 
@@ -56,7 +48,7 @@ export function TaskManager() {
             Organize and prioritize your business tasks.
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setNewTaskDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           New Task
         </Button>
@@ -214,6 +206,11 @@ export function TaskManager() {
           </div>
         </TabsContent>
       </Tabs>
+      
+      <NewTaskDialog 
+        open={newTaskDialogOpen} 
+        onOpenChange={setNewTaskDialogOpen} 
+      />
     </div>
   );
 }

@@ -6,22 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileCard } from '@/components/files/FileCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { NewFileDialog } from '@/components/files/NewFileDialog';
+import { useAppContext } from '@/context/AppContext';
 
 export function FilesManager() {
+  const { files } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
+  const [newFileDialogOpen, setNewFileDialogOpen] = useState(false);
+  const [newFolderDialogOpen, setNewFolderDialogOpen] = useState(false);
   
-  // Sample files for demo
-  const files = [
-    { id: '1', name: 'Business License.pdf', type: 'pdf', size: '2.4 MB', modified: '2 days ago' },
-    { id: '2', name: 'Q1 Expense Report.xlsx', type: 'xlsx', size: '1.7 MB', modified: '1 week ago' },
-    { id: '3', name: 'Supplier Contract.pdf', type: 'pdf', size: '3.1 MB', modified: '3 weeks ago' },
-    { id: '4', name: 'Product Catalog.pdf', type: 'pdf', size: '8.3 MB', modified: '1 month ago' },
-    { id: '5', name: 'Marketing Plan 2025.docx', type: 'docx', size: '1.2 MB', modified: '2 days ago' },
-    { id: '6', name: 'Logo Files.zip', type: 'zip', size: '15.8 MB', modified: '3 months ago' },
-    { id: '7', name: 'Insurance Policy.pdf', type: 'pdf', size: '4.5 MB', modified: '5 months ago' },
-    { id: '8', name: 'Product Images.zip', type: 'zip', size: '45.2 MB', modified: '2 weeks ago' },
-  ];
-
   // Filter files based on search term
   const filteredFiles = files.filter(file => 
     file.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -29,7 +22,7 @@ export function FilesManager() {
   
   // For demo purposes, categorized files
   const importantFiles = files.filter((_, index) => index === 0 || index === 2 || index === 6);
-  const recentFiles = files.filter((_, index) => index === 0 || index === 1 || index === 4);
+  const recentFiles = files.filter((file) => file.modified.includes('day') || file.modified.includes('Just now'));
 
   return (
     <div className="space-y-6">
@@ -41,11 +34,11 @@ export function FilesManager() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button>
+          <Button onClick={() => setNewFileDialogOpen(true)}>
             <Upload className="mr-2 h-4 w-4" />
             Upload Files
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setNewFolderDialogOpen(true)}>
             <FolderPlus className="mr-2 h-4 w-4" />
             New Folder
           </Button>
@@ -119,6 +112,11 @@ export function FilesManager() {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      <NewFileDialog 
+        open={newFileDialogOpen} 
+        onOpenChange={setNewFileDialogOpen} 
+      />
     </div>
   );
 }

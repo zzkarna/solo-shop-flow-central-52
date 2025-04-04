@@ -6,31 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-
-interface CalendarEvent {
-  id: string;
-  title: string;
-  date: Date;
-  type: 'task' | 'meeting' | 'reminder' | 'deadline';
-  description?: string;
-}
+import { NewEventDialog } from '@/components/calendar/NewEventDialog';
+import { useAppContext } from '@/context/AppContext';
 
 export function CalendarManager() {
+  const { events } = useAppContext();
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
+  const [newEventDialogOpen, setNewEventDialogOpen] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   
-  // Sample events for demo
-  const events: CalendarEvent[] = [
-    { id: '1', title: 'Update product images', date: new Date(), type: 'task' },
-    { id: '2', title: 'Supplier call', date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), type: 'meeting', description: 'Discuss new product line' },
-    { id: '3', title: 'Sales tax filing', date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), type: 'deadline', description: 'Quarterly filing due' },
-    { id: '4', title: 'Website maintenance', date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), type: 'task' },
-    { id: '5', title: 'Social media planning', date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), type: 'meeting' },
-    { id: '6', title: 'Inventory restock deadline', date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), type: 'deadline' },
-    { id: '7', title: 'Customer follow-ups', date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), type: 'task' },
-    { id: '8', title: 'Marketing campaign launch', date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), type: 'reminder' },
-  ];
-
   // Get days in current month
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -42,7 +27,7 @@ export function CalendarManager() {
   
   // Get events for the selected date (for day view)
   const selectedDateEvents = events.filter(event => 
-    isSameDay(event.date, currentDate)
+    selectedDay && isSameDay(event.date, selectedDay)
   );
   
   // Helper function to get events for a specific date
@@ -66,6 +51,19 @@ export function CalendarManager() {
   const goToToday = () => {
     setCurrentDate(new Date());
   };
+  
+  const handleDayClick = (day: Date) => {
+    setSelectedDay(day);
+    setCurrentDate(day);
+    
+    if (viewMode !== 'day') {
+      setViewMode('day');
+    }
+  };
+  
+  const handleNewEvent = () => {
+    setNewEventDialogOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -80,7 +78,7 @@ export function CalendarManager() {
           <Button variant="outline" onClick={goToToday}>
             Today
           </Button>
-          <Button>
+          <Button onClick={handleNewEvent}>
             <Plus className="mr-2 h-4 w-4" />
             New Event
           </Button>
@@ -146,7 +144,7 @@ export function CalendarManager() {
               {daysInMonth.map((day) => {
                 const dayEvents = getEventsForDate(day);
                 const isCurrentMonth = isSameMonth(day, currentDate);
-                const isSelectedDay = isSameDay(day, currentDate);
+                const isSelectedDay = selectedDay && isSameDay(day, selectedDay);
                 
                 return (
                   <div 
@@ -157,7 +155,7 @@ export function CalendarManager() {
                       isSelectedDay && "bg-blue-50",
                       "hover:bg-gray-50 cursor-pointer"
                     )}
-                    onClick={() => setCurrentDate(day)}
+                    onClick={() => handleDayClick(day)}
                   >
                     <div className={cn(
                       "flex justify-center items-center w-6 h-6 rounded-full text-sm",
@@ -203,7 +201,7 @@ export function CalendarManager() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">
-              {format(currentDate, 'EEEE, MMMM d, yyyy')}
+              {selectedDay ? format(selectedDay, 'EEEE, MMMM d, yyyy') : format(currentDate, 'EEEE, MMMM d, yyyy')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -261,6 +259,12 @@ export function CalendarManager() {
           </CardContent>
         </Card>
       )}
+      
+      <NewEventDialog 
+        open={newEventDialogOpen} 
+        onOpenChange={setNewEventDialogOpen}
+        initialDate={selectedDay || currentDate}
+      />
     </div>
   );
 }
