@@ -1,17 +1,7 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { format } from 'date-fns';
+import React, { createContext, useState, useContext, ReactNode } from 'react';
 
-// Define types for our data
-export interface Task {
-  id: string;
-  title: string;
-  priority: 'high' | 'medium' | 'low';
-  dueDate: Date;
-  status: 'not-started' | 'in-progress' | 'completed';
-  description?: string;
-}
-
+// File type
 export interface File {
   id: string;
   name: string;
@@ -19,343 +9,411 @@ export interface File {
   size: string;
   modified: string;
   category?: string;
+  description?: string;
+  tags?: string[];
+  path?: string; // Parent folder ID
 }
 
+// Folder type (extends File for simplicity)
+export interface Folder extends File {
+  type: 'folder';
+}
+
+// Task type
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  priority: 'low' | 'medium' | 'high';
+  dueDate: Date;
+  status: 'not-started' | 'in-progress' | 'completed';
+}
+
+// Calendar event type
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  date: Date;
+  type: 'meeting' | 'task' | 'reminder' | 'deadline';
+}
+
+// Compliance item type
+export interface ComplianceItem {
+  id: string;
+  title: string;
+  description?: string;
+  category: 'tax' | 'license' | 'legal' | 'insurance';
+  dueDate: Date;
+  status: 'upcoming' | 'urgent' | 'overdue' | 'completed';
+}
+
+// Note type
 export interface Note {
   id: string;
   title: string;
   excerpt: string;
+  content: string;
   date: string;
   category: string;
-  content?: string;
 }
 
-export interface NotebookType {
+// Notebook type
+export interface Notebook {
   id: string;
   name: string;
   notes: Note[];
 }
 
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  date: Date;
-  type: 'task' | 'meeting' | 'reminder' | 'deadline';
-  description?: string;
-}
-
-export interface ComplianceItem {
-  id: string;
-  title: string;
-  dueDate: Date;
-  description?: string;
-  status: 'completed' | 'upcoming' | 'urgent' | 'overdue';
-  category: 'tax' | 'license' | 'legal' | 'insurance';
-  documents?: string[];
-}
-
+// Context type
 interface AppContextType {
+  // Files
+  files: File[];
+  addFile: (file: Omit<File, 'id'>) => void;
+  deleteFile: (id: string) => void;
+  updateFileTags: (id: string, tags: string[]) => void;
+  
+  // Folders
+  folders: Folder[];
+  addFolder: (folder: Omit<Folder, 'id'>) => void;
+  
   // Tasks
   tasks: Task[];
   addTask: (task: Omit<Task, 'id'>) => void;
   updateTaskStatus: (id: string, status: Task['status']) => void;
   
-  // Files
-  files: File[];
-  addFile: (file: Omit<File, 'id'>) => void;
-  addFolder: (folder: Omit<File, 'id'>) => void;
-  
-  // Notes
-  notebooks: NotebookType[];
-  addNote: (notebookId: string, note: Omit<Note, 'id'>) => void;
-  addNotebook: (name: string) => void;
-  
-  // Calendar
+  // Events
   events: CalendarEvent[];
   addEvent: (event: Omit<CalendarEvent, 'id'>) => void;
   
-  // Compliance
+  // Compliance Items
   complianceItems: ComplianceItem[];
   addComplianceItem: (item: Omit<ComplianceItem, 'id'>) => void;
   updateComplianceStatus: (id: string, status: ComplianceItem['status']) => void;
+  
+  // Notebooks & Notes
+  notebooks: Notebook[];
+  addNotebook: (name: string) => void;
+  addNote: (notebookId: string, note: Omit<Note, 'id'>) => void;
 }
 
+// Create context with default values
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-// Sample data
-const initialTasks: Task[] = [
-  { id: '1', title: 'Order new shipping supplies', priority: 'medium', dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), status: 'not-started' },
-  { id: '2', title: 'Update product descriptions', priority: 'high', dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), status: 'in-progress' },
-  { id: '3', title: 'Schedule social media posts', priority: 'low', dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), status: 'not-started' },
-  { id: '4', title: 'Contact supplier about late delivery', priority: 'high', dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), status: 'not-started' },
-  { id: '5', title: 'Renew domain name', priority: 'medium', dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), status: 'not-started' },
-  { id: '6', title: 'Review customer feedback', priority: 'medium', dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), status: 'in-progress' },
-  { id: '7', title: 'Update inventory count', priority: 'high', dueDate: new Date(Date.now()), status: 'completed' },
-  { id: '8', title: 'Send thank you emails to recent customers', priority: 'low', dueDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000), status: 'not-started' },
-];
+// Provider component
+export function AppProvider({ children }: { children: ReactNode }) {
+  // Files state
+  const [files, setFiles] = useState<File[]>([
+    { 
+      id: '1', 
+      name: 'Business License.pdf', 
+      type: 'pdf', 
+      size: '2.4 MB', 
+      modified: '2 days ago',
+      category: 'legal',
+      tags: ['important', 'license']
+    },
+    { 
+      id: '2', 
+      name: 'Q1 Expense Report.xlsx', 
+      type: 'xlsx', 
+      size: '1.7 MB', 
+      modified: '1 week ago',
+      category: 'finances'
+    },
+    { 
+      id: '3', 
+      name: 'Product Catalog.pdf', 
+      type: 'pdf', 
+      size: '5.2 MB', 
+      modified: '2 weeks ago',
+      category: 'products'
+    },
+    { 
+      id: '4', 
+      name: 'Logo.png', 
+      type: 'image', 
+      size: '0.8 MB', 
+      modified: '1 month ago',
+      category: 'marketing'
+    },
+    { 
+      id: '5', 
+      name: 'Supplier Contract.pdf', 
+      type: 'pdf', 
+      size: '3.1 MB', 
+      modified: '3 weeks ago',
+      category: 'legal',
+      tags: ['contract', 'supplier']
+    },
+    { 
+      id: '6', 
+      name: 'Store Photos.zip', 
+      type: 'zip', 
+      size: '24.5 MB', 
+      modified: '1 month ago',
+      category: 'marketing'
+    },
+    { 
+      id: '7', 
+      name: 'Monthly Sales Data.xlsx', 
+      type: 'xlsx', 
+      size: '1.9 MB', 
+      modified: '3 days ago',
+      category: 'finances',
+      tags: ['sales', 'monthly']
+    }
+  ]);
+  
+  // Folders state
+  const [folders, setFolders] = useState<Folder[]>([
+    {
+      id: 'folder-1',
+      name: 'Legal Documents',
+      type: 'folder',
+      size: '--',
+      modified: '1 week ago',
+      category: 'legal'
+    },
+    {
+      id: 'folder-2',
+      name: 'Financial Reports',
+      type: 'folder',
+      size: '--',
+      modified: '3 days ago',
+      category: 'finances'
+    }
+  ]);
 
-const initialFiles: File[] = [
-  { id: '1', name: 'Business License.pdf', type: 'pdf', size: '2.4 MB', modified: '2 days ago' },
-  { id: '2', name: 'Q1 Expense Report.xlsx', type: 'xlsx', size: '1.7 MB', modified: '1 week ago' },
-  { id: '3', name: 'Supplier Contract.pdf', type: 'pdf', size: '3.1 MB', modified: '3 weeks ago' },
-  { id: '4', name: 'Product Catalog.pdf', type: 'pdf', size: '8.3 MB', modified: '1 month ago' },
-  { id: '5', name: 'Marketing Plan 2025.docx', type: 'docx', size: '1.2 MB', modified: '2 days ago' },
-  { id: '6', name: 'Logo Files.zip', type: 'zip', size: '15.8 MB', modified: '3 months ago' },
-  { id: '7', name: 'Insurance Policy.pdf', type: 'pdf', size: '4.5 MB', modified: '5 months ago' },
-  { id: '8', name: 'Product Images.zip', type: 'zip', size: '45.2 MB', modified: '2 weeks ago' },
-];
+  // Tasks state
+  const [tasks, setTasks] = useState<Task[]>([
+    { 
+      id: 't1', 
+      title: 'Order new shipping supplies', 
+      priority: 'medium', 
+      dueDate: new Date(new Date().getTime() + 3 * 24 * 60 * 60 * 1000), 
+      status: 'not-started' 
+    },
+    { 
+      id: 't2', 
+      title: 'Update product descriptions', 
+      priority: 'high', 
+      dueDate: new Date(new Date().getTime() + 1 * 24 * 60 * 60 * 1000), 
+      status: 'in-progress' 
+    },
+    { 
+      id: 't3', 
+      title: 'Schedule social media posts', 
+      priority: 'low', 
+      dueDate: new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000), 
+      status: 'not-started' 
+    },
+  ]);
+  
+  // Events state
+  const [events, setEvents] = useState<CalendarEvent[]>([
+    { 
+      id: 'e1', 
+      title: 'Supplier Meeting', 
+      date: new Date(), 
+      type: 'meeting' 
+    },
+    { 
+      id: 'e2', 
+      title: 'Product Photography', 
+      date: new Date(new Date().getTime() + 2 * 24 * 60 * 60 * 1000), 
+      type: 'task' 
+    },
+    { 
+      id: 'e3', 
+      title: 'Sales Tax Filing', 
+      date: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000), 
+      type: 'deadline' 
+    },
+  ]);
+  
+  // Compliance items state
+  const [complianceItems, setComplianceItems] = useState<ComplianceItem[]>([
+    { 
+      id: 'c1', 
+      title: 'Quarterly Sales Tax Filing', 
+      category: 'tax', 
+      dueDate: new Date(2025, 3, 30), // April 30, 2025 
+      status: 'upcoming' 
+    },
+    { 
+      id: 'c2', 
+      title: 'Business License Renewal', 
+      category: 'license', 
+      dueDate: new Date(2025, 5, 15), // June 15, 2025
+      status: 'upcoming' 
+    },
+    { 
+      id: 'c3', 
+      title: 'Annual Tax Return', 
+      category: 'tax', 
+      dueDate: new Date(2025, 3, 15), // April 15, 2025
+      status: 'urgent' 
+    },
+  ]);
+  
+  // Notebooks state
+  const [notebooks, setNotebooks] = useState<Notebook[]>([
+    {
+      id: 'nb1',
+      name: 'Marketing',
+      notes: [
+        {
+          id: 'n1',
+          title: 'Product Launch Ideas',
+          excerpt: 'For the summer collection, we should focus on lightweight fabrics and bright colors. Key items to include:',
+          content: 'For the summer collection, we should focus on lightweight fabrics and bright colors. Key items to include: sundresses, linen shirts, and beach accessories. We can also partner with local influencers for promotion.',
+          date: '2 days ago',
+          category: 'Marketing'
+        }
+      ]
+    },
+    {
+      id: 'nb2',
+      name: 'Operations',
+      notes: [
+        {
+          id: 'n2',
+          title: 'Shipping Process Improvements',
+          excerpt: 'Current shipping times are too long. We should consider the following improvements:',
+          content: 'Current shipping times are too long. We should consider the following improvements: partnering with a new logistics company, pre-packaging common orders, and implementing batch processing for shipping labels.',
+          date: '1 week ago',
+          category: 'Operations'
+        }
+      ]
+    }
+  ]);
 
-const initialNotebooks: NotebookType[] = [
-  {
-    id: 'marketing',
-    name: 'Marketing',
-    notes: [
-      {
-        id: '1',
-        title: 'Product Launch Ideas',
-        excerpt: 'For the summer collection, we should focus on lightweight fabrics and bright colors. Key items to include:',
-        date: '2 days ago',
-        category: 'Marketing'
-      },
-      {
-        id: '2',
-        title: 'Social Media Schedule',
-        excerpt: 'Monday: Product spotlight\nWednesday: Customer testimonial\nFriday: Behind the scenes\nSunday: Weekend special',
-        date: '1 week ago',
-        category: 'Marketing'
-      }
-    ]
-  },
-  {
-    id: 'operations',
-    name: 'Operations',
-    notes: [
-      {
-        id: '3',
-        title: 'Shipping Workflow',
-        excerpt: 'Updated process for shipping orders: 1. Verify order details 2. Print shipping label 3. Package items 4. Prepare for pickup',
-        date: '3 days ago',
-        category: 'Operations'
-      },
-      {
-        id: '4',
-        title: 'Inventory Management',
-        excerpt: 'New count procedure: 1. Count all items at the beginning of month 2. Update spreadsheet 3. Compare with system numbers',
-        date: '2 weeks ago',
-        category: 'Operations'
-      }
-    ]
-  },
-  {
-    id: 'suppliers',
-    name: 'Suppliers',
-    notes: [
-      {
-        id: '5',
-        title: 'Fabric Vendor Contact Info',
-        excerpt: 'Primary: John Smith (555-123-4567)\nBackup: Sarah Jones (555-987-6543)\nEmail: orders@fabricsupplier.com',
-        date: '1 month ago',
-        category: 'Suppliers'
-      }
-    ]
-  }
-];
-
-const initialEvents: CalendarEvent[] = [
-  { id: '1', title: 'Update product images', date: new Date(), type: 'task' },
-  { id: '2', title: 'Supplier call', date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), type: 'meeting', description: 'Discuss new product line' },
-  { id: '3', title: 'Sales tax filing', date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), type: 'deadline', description: 'Quarterly filing due' },
-  { id: '4', title: 'Website maintenance', date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), type: 'task' },
-  { id: '5', title: 'Social media planning', date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), type: 'meeting' },
-  { id: '6', title: 'Inventory restock deadline', date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), type: 'deadline' },
-  { id: '7', title: 'Customer follow-ups', date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), type: 'task' },
-  { id: '8', title: 'Marketing campaign launch', date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), type: 'reminder' },
-];
-
-const initialComplianceItems: ComplianceItem[] = [
-  { 
-    id: '1', 
-    title: 'Quarterly Sales Tax Filing', 
-    dueDate: new Date(2025, 3, 30), // April 30, 2025
-    description: 'File Q1 sales tax report with state department of revenue',
-    status: 'upcoming',
-    category: 'tax'
-  },
-  { 
-    id: '2', 
-    title: 'Business License Renewal', 
-    dueDate: new Date(2025, 5, 15), // June 15, 2025
-    description: 'Annual business license renewal with city office',
-    status: 'upcoming',
-    category: 'license'
-  },
-  { 
-    id: '3', 
-    title: 'Annual Tax Return', 
-    dueDate: new Date(2025, 3, 15), // April 15, 2025
-    description: 'Federal income tax return for the business',
-    status: 'urgent',
-    category: 'tax'
-  },
-  { 
-    id: '4', 
-    title: 'Insurance Policy Renewal', 
-    dueDate: new Date(2025, 2, 10), // March 10, 2025
-    description: 'Renew business liability insurance policy',
-    status: 'completed',
-    category: 'insurance'
-  },
-  { 
-    id: '5', 
-    title: 'LLC Annual Report', 
-    dueDate: new Date(2025, 0, 15), // January 15, 2025
-    description: 'Submit annual LLC report to state',
-    status: 'overdue',
-    category: 'legal'
-  },
-  { 
-    id: '6', 
-    title: 'Sales Tax Permit Renewal', 
-    dueDate: new Date(2025, 7, 31), // August 31, 2025
-    description: 'Renew sales tax collection permit',
-    status: 'upcoming',
-    category: 'license'
-  },
-  { 
-    id: '7', 
-    title: 'Quarterly Estimated Tax Payment', 
-    dueDate: new Date(2025, 6, 15), // July 15, 2025
-    description: 'Q2 estimated tax payment',
-    status: 'upcoming',
-    category: 'tax'
-  },
-  { 
-    id: '8', 
-    title: 'Workers Comp Insurance Audit', 
-    dueDate: new Date(2025, 1, 28), // February 28, 2025
-    description: 'Annual workers compensation insurance audit',
-    status: 'overdue',
-    category: 'insurance'
-  }
-];
-
-export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [files, setFiles] = useState<File[]>(initialFiles);
-  const [notebooks, setNotebooks] = useState<NotebookType[]>(initialNotebooks);
-  const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
-  const [complianceItems, setComplianceItems] = useState<ComplianceItem[]>(initialComplianceItems);
-
-  // Task functions
-  const addTask = (task: Omit<Task, 'id'>) => {
-    const newTask = {
-      ...task,
-      id: `task-${Date.now()}`
-    };
-    setTasks(prevTasks => [...prevTasks, newTask]);
-  };
-
-  const updateTaskStatus = (id: string, status: Task['status']) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === id ? { ...task, status } : task
-      )
-    );
-  };
-
-  // File functions
+  // File operations
   const addFile = (file: Omit<File, 'id'>) => {
-    const newFile = {
-      ...file,
-      id: `file-${Date.now()}`
-    };
-    setFiles(prevFiles => [...prevFiles, newFile]);
+    const newFile = { ...file, id: `file-${Date.now()}` };
+    setFiles([...files, newFile]);
   };
   
-  // New folder function
-  const addFolder = (folder: Omit<File, 'id'>) => {
-    const newFolder = {
-      ...folder,
-      id: `folder-${Date.now()}`
-    };
-    setFiles(prevFiles => [...prevFiles, newFolder]);
-  };
-
-  // Note functions
-  const addNote = (notebookId: string, note: Omit<Note, 'id'>) => {
-    const newNote = {
-      ...note,
-      id: `note-${Date.now()}`
-    };
+  const deleteFile = (id: string) => {
+    // Check if it's a file
+    const fileIndex = files.findIndex(file => file.id === id);
+    if (fileIndex !== -1) {
+      setFiles(files.filter(file => file.id !== id));
+      return;
+    }
     
-    setNotebooks(prevNotebooks => 
-      prevNotebooks.map(notebook => 
-        notebook.id === notebookId 
-          ? { ...notebook, notes: [...notebook.notes, newNote] } 
-          : notebook
-      )
-    );
+    // Check if it's a folder
+    const folderIndex = folders.findIndex(folder => folder.id === id);
+    if (folderIndex !== -1) {
+      // Delete folder
+      setFolders(folders.filter(folder => folder.id !== id));
+      
+      // Delete all files in this folder
+      setFiles(files.filter(file => file.path !== id));
+      
+      // TODO: In a real app, we would recursively delete subfolders too
+      return;
+    }
+  };
+  
+  const updateFileTags = (id: string, tags: string[]) => {
+    setFiles(files.map(file => 
+      file.id === id ? { ...file, tags } : file
+    ));
+  };
+  
+  // Folder operations
+  const addFolder = (folder: Omit<Folder, 'id'>) => {
+    const newFolder = { ...folder, id: `folder-${Date.now()}` };
+    setFolders([...folders, newFolder]);
   };
 
+  // Task operations
+  const addTask = (task: Omit<Task, 'id'>) => {
+    const newTask = { ...task, id: `t${tasks.length + 1}` };
+    setTasks([...tasks, newTask]);
+  };
+  
+  const updateTaskStatus = (id: string, status: Task['status']) => {
+    setTasks(tasks.map(task => 
+      task.id === id ? { ...task, status } : task
+    ));
+  };
+  
+  // Calendar event operations
+  const addEvent = (event: Omit<CalendarEvent, 'id'>) => {
+    const newEvent = { ...event, id: `e${events.length + 1}` };
+    setEvents([...events, newEvent]);
+  };
+  
+  // Compliance item operations
+  const addComplianceItem = (item: Omit<ComplianceItem, 'id'>) => {
+    const newItem = { ...item, id: `c${complianceItems.length + 1}` };
+    setComplianceItems([...complianceItems, newItem]);
+  };
+  
+  const updateComplianceStatus = (id: string, status: ComplianceItem['status']) => {
+    setComplianceItems(complianceItems.map(item => 
+      item.id === id ? { ...item, status } : item
+    ));
+  };
+  
+  // Notebook operations
   const addNotebook = (name: string) => {
-    const newNotebook = {
-      id: `notebook-${Date.now()}`,
+    const newNotebook = { 
+      id: `nb${notebooks.length + 1}`,
       name,
       notes: []
     };
-    setNotebooks(prevNotebooks => [...prevNotebooks, newNotebook]);
+    setNotebooks([...notebooks, newNotebook]);
+  };
+  
+  // Note operations
+  const addNote = (notebookId: string, note: Omit<Note, 'id'>) => {
+    const newNote = { ...note, id: `n${Date.now()}` };
+    
+    setNotebooks(notebooks.map(notebook => 
+      notebook.id === notebookId
+        ? { ...notebook, notes: [...notebook.notes, newNote] }
+        : notebook
+    ));
   };
 
-  // Calendar functions
-  const addEvent = (event: Omit<CalendarEvent, 'id'>) => {
-    const newEvent = {
-      ...event,
-      id: `event-${Date.now()}`
-    };
-    setEvents(prevEvents => [...prevEvents, newEvent]);
-  };
+  return (
+    <AppContext.Provider
+      value={{
+        files,
+        addFile,
+        deleteFile,
+        updateFileTags,
+        folders,
+        addFolder,
+        tasks,
+        addTask,
+        updateTaskStatus,
+        events,
+        addEvent,
+        complianceItems,
+        addComplianceItem,
+        updateComplianceStatus,
+        notebooks,
+        addNotebook,
+        addNote
+      }}
+    >
+      {children}
+    </AppContext.Provider>
+  );
+}
 
-  // Compliance functions
-  const addComplianceItem = (item: Omit<ComplianceItem, 'id'>) => {
-    const newItem = {
-      ...item,
-      id: `compliance-${Date.now()}`
-    };
-    setComplianceItems(prevItems => [...prevItems, newItem]);
-  };
-
-  const updateComplianceStatus = (id: string, status: ComplianceItem['status']) => {
-    setComplianceItems(prevItems => 
-      prevItems.map(item => 
-        item.id === id ? { ...item, status } : item
-      )
-    );
-  };
-
-  const value = {
-    tasks,
-    addTask,
-    updateTaskStatus,
-    files,
-    addFile,
-    addFolder,
-    notebooks,
-    addNote,
-    addNotebook,
-    events,
-    addEvent,
-    complianceItems,
-    addComplianceItem,
-    updateComplianceStatus
-  };
-
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-};
-
+// Custom hook to use the context
 export const useAppContext = () => {
   const context = useContext(AppContext);
+  
   if (context === undefined) {
     throw new Error('useAppContext must be used within an AppProvider');
   }
+  
   return context;
 };

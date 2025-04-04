@@ -11,11 +11,13 @@ import { toast } from '@/hooks/use-toast';
 interface NewFolderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  parentFolder?: string;
 }
 
-export function NewFolderDialog({ open, onOpenChange }: NewFolderDialogProps) {
+export function NewFolderDialog({ open, onOpenChange, parentFolder }: NewFolderDialogProps) {
   const { addFolder } = useAppContext();
   const [folderName, setFolderName] = useState('');
+  const [folderDescription, setFolderDescription] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +35,9 @@ export function NewFolderDialog({ open, onOpenChange }: NewFolderDialogProps) {
       name: folderName,
       type: 'folder',
       size: '--',
-      modified: 'Just now'
+      modified: 'Just now',
+      description: folderDescription || undefined,
+      path: parentFolder // Store the parent folder ID
     });
 
     toast({
@@ -43,6 +47,7 @@ export function NewFolderDialog({ open, onOpenChange }: NewFolderDialogProps) {
 
     // Reset form
     setFolderName('');
+    setFolderDescription('');
     onOpenChange(false);
   };
 
@@ -69,6 +74,23 @@ export function NewFolderDialog({ open, onOpenChange }: NewFolderDialogProps) {
               />
             </div>
           </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="folder-description">Description (Optional)</Label>
+            <Input
+              id="folder-description"
+              value={folderDescription}
+              onChange={(e) => setFolderDescription(e.target.value)}
+              placeholder="What's this folder for?"
+              className="flex-1"
+            />
+          </div>
+          
+          {parentFolder && parentFolder !== 'root' && (
+            <div className="bg-muted/50 p-2 rounded text-sm">
+              This folder will be created inside the current folder.
+            </div>
+          )}
           
           <DialogFooter>
             <Button type="submit">Create Folder</Button>
