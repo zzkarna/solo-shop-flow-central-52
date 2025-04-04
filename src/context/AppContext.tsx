@@ -63,6 +63,7 @@ interface AppContextType {
   // Files
   files: File[];
   addFile: (file: Omit<File, 'id'>) => void;
+  addFolder: (folder: Omit<File, 'id'>) => void;
   
   // Notes
   notebooks: NotebookType[];
@@ -270,6 +271,15 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     };
     setFiles(prevFiles => [...prevFiles, newFile]);
   };
+  
+  // New folder function
+  const addFolder = (folder: Omit<File, 'id'>) => {
+    const newFolder = {
+      ...folder,
+      id: `folder-${Date.now()}`
+    };
+    setFiles(prevFiles => [...prevFiles, newFolder]);
+  };
 
   // Note functions
   const addNote = (notebookId: string, note: Omit<Note, 'id'>) => {
@@ -328,6 +338,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     updateTaskStatus,
     files,
     addFile,
+    addFolder,
     notebooks,
     addNote,
     addNotebook,

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FileCard } from '@/components/files/FileCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NewFileDialog } from '@/components/files/NewFileDialog';
+import { NewFolderDialog } from '@/components/files/NewFolderDialog';
 import { useAppContext } from '@/context/AppContext';
 
 export function FilesManager() {
@@ -116,6 +117,11 @@ export function FilesManager() {
       <NewFileDialog 
         open={newFileDialogOpen} 
         onOpenChange={setNewFileDialogOpen} 
+      />
+      
+      <NewFolderDialog
+        open={newFolderDialogOpen}
+        onOpenChange={setNewFolderDialogOpen}
       />
     </div>
   );

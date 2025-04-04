@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { 
   CalendarIcon, 
   Clipboard, 
@@ -15,8 +16,19 @@ import { FileCard } from '../files/FileCard';
 import { CalendarWidget } from '../calendar/CalendarWidget';
 import { ComplianceStatus } from '../compliance/ComplianceStatus';
 import { NotePreview } from '../notes/NotePreview';
+import { NewTaskDialog } from '../tasks/NewTaskDialog';
+import { NewFileDialog } from '../files/NewFileDialog';
+import { NewNoteDialog } from '../notes/NewNoteDialog';
+import { NewEventDialog } from '../calendar/NewEventDialog';
+import { useNavigate } from 'react-router-dom';
 
 export function DashboardOverview() {
+  const navigate = useNavigate();
+  const [newTaskDialogOpen, setNewTaskDialogOpen] = useState(false);
+  const [newFileDialogOpen, setNewFileDialogOpen] = useState(false);
+  const [newNoteDialogOpen, setNewNoteDialogOpen] = useState(false);
+  const [newEventDialogOpen, setNewEventDialogOpen] = useState(false);
+
   // Sample tasks for demo - ensuring proper typing
   const recentTasks = [
     { 
@@ -72,7 +84,12 @@ export function DashboardOverview() {
             </div>
           </CardHeader>
           <CardContent>
-            <Button variant="outline" className="w-full" size="sm">
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              size="sm"
+              onClick={() => setNewTaskDialogOpen(true)}
+            >
               <PlusCircle className="mr-2 h-4 w-4" />
               New Task
             </Button>
@@ -87,7 +104,12 @@ export function DashboardOverview() {
             </div>
           </CardHeader>
           <CardContent>
-            <Button variant="outline" className="w-full" size="sm">
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              size="sm"
+              onClick={() => setNewFileDialogOpen(true)}
+            >
               <PlusCircle className="mr-2 h-4 w-4" />
               New File
             </Button>
@@ -102,7 +124,12 @@ export function DashboardOverview() {
             </div>
           </CardHeader>
           <CardContent>
-            <Button variant="outline" className="w-full" size="sm">
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              size="sm"
+              onClick={() => setNewNoteDialogOpen(true)}
+            >
               <PlusCircle className="mr-2 h-4 w-4" />
               New Note
             </Button>
@@ -117,7 +144,12 @@ export function DashboardOverview() {
             </div>
           </CardHeader>
           <CardContent>
-            <Button variant="outline" className="w-full" size="sm">
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              size="sm"
+              onClick={() => setNewEventDialogOpen(true)}
+            >
               <PlusCircle className="mr-2 h-4 w-4" />
               New Event
             </Button>
@@ -151,7 +183,11 @@ export function DashboardOverview() {
               <span className="text-sm text-muted-foreground">
                 Showing 3 of 12 tasks
               </span>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/tasks')}
+              >
                 View All Tasks
               </Button>
             </CardFooter>
@@ -179,7 +215,11 @@ export function DashboardOverview() {
               <span className="text-sm text-muted-foreground">
                 Showing 2 of 24 files
               </span>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/files')}
+              >
                 View All Files
               </Button>
             </CardFooter>
@@ -208,7 +248,11 @@ export function DashboardOverview() {
               <span className="text-sm text-muted-foreground">
                 Showing 1 of 8 notes
               </span>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/notes')}
+              >
                 View All Notes
               </Button>
             </CardFooter>
@@ -232,7 +276,12 @@ export function DashboardOverview() {
               <CalendarWidget />
             </CardContent>
             <CardFooter className="border-t pt-3">
-              <Button variant="outline" className="w-full" size="sm">
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                size="sm"
+                onClick={() => navigate('/calendar')}
+              >
                 Full Calendar View
               </Button>
             </CardFooter>
@@ -253,13 +302,39 @@ export function DashboardOverview() {
               <ComplianceStatus />
             </CardContent>
             <CardFooter className="border-t pt-3">
-              <Button variant="outline" className="w-full" size="sm">
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                size="sm"
+                onClick={() => navigate('/compliance')}
+              >
                 View Compliance Dashboard
               </Button>
             </CardFooter>
           </Card>
         </div>
       </div>
+
+      {/* Dialogs */}
+      <NewTaskDialog 
+        open={newTaskDialogOpen} 
+        onOpenChange={setNewTaskDialogOpen} 
+      />
+      
+      <NewFileDialog 
+        open={newFileDialogOpen} 
+        onOpenChange={setNewFileDialogOpen} 
+      />
+      
+      <NewNoteDialog 
+        open={newNoteDialogOpen} 
+        onOpenChange={setNewNoteDialogOpen} 
+      />
+      
+      <NewEventDialog 
+        open={newEventDialogOpen} 
+        onOpenChange={setNewEventDialogOpen} 
+      />
     </div>
   );
 }
