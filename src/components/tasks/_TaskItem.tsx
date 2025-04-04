@@ -15,7 +15,8 @@ interface TaskProps {
   };
 }
 
-export function TaskItem({ task }: TaskProps) {
+// This is a base version of TaskItem, not directly used anymore
+export function BasicTaskItem({ task }: TaskProps) {
   const priorityStyles = {
     high: "border-red-200 bg-red-50",
     medium: "border-amber-200 bg-amber-50",
@@ -87,5 +88,6 @@ export function TaskItem({ task }: TaskProps) {
   );
 }
 
-// Export the EnhancedTaskItem as TaskItem for new components
-export { EnhancedTaskItem as TaskItem } from './TaskItem';
+// We no longer want to re-export here, as it's causing conflicts
+// Just commenting this out rather than deleting to show what was changed
+// export { EnhancedTaskItem as TaskItem } from './TaskItem';

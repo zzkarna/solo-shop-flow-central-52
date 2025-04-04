@@ -20,7 +20,8 @@ interface TaskProps {
   };
 }
 
-export function EnhancedTaskItem({ task }: TaskProps) {
+// Export this directly as TaskItem instead of EnhancedTaskItem
+export function TaskItem({ task }: TaskProps) {
   const { updateTaskStatus } = useAppContext();
   
   const priorityStyles = {
@@ -112,3 +113,5 @@ export function EnhancedTaskItem({ task }: TaskProps) {
     </div>
   );
 }
+
+// No longer exporting EnhancedTaskItem

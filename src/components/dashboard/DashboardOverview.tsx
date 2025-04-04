@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   CalendarIcon, 
@@ -18,11 +17,29 @@ import { ComplianceStatus } from '../compliance/ComplianceStatus';
 import { NotePreview } from '../notes/NotePreview';
 
 export function DashboardOverview() {
-  // Sample tasks for demo - using proper TaskPriority and TaskStatus types
+  // Sample tasks for demo - ensuring proper typing
   const recentTasks = [
-    { id: '1', title: 'Order new shipping supplies', priority: 'medium' as const, dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), status: 'not-started' as const },
-    { id: '2', title: 'Update product descriptions', priority: 'high' as const, dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), status: 'in-progress' as const },
-    { id: '3', title: 'Schedule social media posts', priority: 'low' as const, dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), status: 'not-started' as const },
+    { 
+      id: '1', 
+      title: 'Order new shipping supplies', 
+      priority: 'medium' as const, 
+      dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), 
+      status: 'not-started' as const 
+    },
+    { 
+      id: '2', 
+      title: 'Update product descriptions', 
+      priority: 'high' as const, 
+      dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), 
+      status: 'in-progress' as const 
+    },
+    { 
+      id: '3', 
+      title: 'Schedule social media posts', 
+      priority: 'low' as const, 
+      dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), 
+      status: 'not-started' as const 
+    },
   ];
 
   // Sample files for demo

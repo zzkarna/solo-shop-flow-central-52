@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Clipboard, Plus, Search, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,6 @@ export function TaskManager() {
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [newTaskDialogOpen, setNewTaskDialogOpen] = useState(false);
   
-  // Apply filters
   const filteredTasks = tasks
     .filter(task => 
       task.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -25,12 +23,10 @@ export function TaskManager() {
       filterPriority === 'all' || task.priority === filterPriority
     );
   
-  // Group tasks by status
   const notStartedTasks = filteredTasks.filter(task => task.status === 'not-started');
   const inProgressTasks = filteredTasks.filter(task => task.status === 'in-progress');
   const completedTasks = filteredTasks.filter(task => task.status === 'completed');
   
-  // Tasks that are due today or overdue
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const urgentTasks = filteredTasks.filter(task => {
